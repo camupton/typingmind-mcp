@@ -1,153 +1,95 @@
-# MCP Connector
+# Google Ads MCP Server for TypingMind
 
-**MCP Connector** is a lightweight server that can run and manage multiple Model Context Protocol (MCP) servers, specifically designed to integrate with [TypingMind](https://www.typingmind.com/mcp). It provides an easy way to run MCP servers on your local computer or a remote server, making it possible to connect your custom AI models or tools with TypingMind through a simple REST API.
+A Model Context Protocol (MCP) server that provides Google Ads integration for TypingMind, allowing you to analyze advertising data through natural language conversations.
 
----
+## Features
 
-## How to Run on Your Local Device
+- **Account Management**: List all accessible Google Ads accounts (MCC and client accounts)
+- **Account Information**: Get detailed account information including currency, timezone, and status
+- **Ad Spend Analytics**: Retrieve ad spend data for specific time periods
+- **Keyword Performance**: Analyze keyword performance metrics and quality scores
 
-You can quickly start the MCP Connector using `npx` (no install required):
+## Available Tools
 
-```bash
-npx @typingmind/mcp@latest <auth-token>
-```
-- Replace `<auth-token>` with your authentication token provided by TypingMind.
+1. **`list_google_ads_accounts`** - List all accessible Google Ads accounts
+2. **`get_account_info`** - Get detailed information about a specific account
+3. **`get_ad_spend`** - Get ad spend data for a specific account over a time period
+4. **`get_keyword_performance`** - Get keyword performance data for a specific account
 
-You can also provide the auth token via an environment variable:
+## Setup
 
-```bash
-MCP_AUTH_TOKEN=<auth-token> npx @typingmind/mcp@latest
-```
+### Prerequisites
 
-Keep the process running while you use TypingMind.
+- Node.js 18+ 
+- Google Ads API credentials
+- TypingMind account
 
-### HTTPS Support
+### Installation
 
-To enable HTTPS, set the following environment variables:
-
-```bash
-CERTFILE=./path/to/certificate.crt KEYFILE=./path/to/privatekey.key npx @typingmind/mcp@latest <auth-token>
-```
-
-- `CERTFILE`: Path to your SSL certificate file
-- `KEYFILE`: Path to your SSL private key file
-
-When both variables are set, the server will use HTTPS instead of HTTP.
-
----
-
-## How to Run on a Server
-
-If you prefer running the MCP Connector on a remote server:
-
-1. **Install Node.js** (version 14 or later).
-2. Run the server using `npx`:
-
+1. Clone the repository
+2. Install dependencies:
    ```bash
-   npx @typingmind/mcp@latest <auth-token>
+   npm install
+   ```
+3. Set up environment variables in `test.env`:
+   ```
+   GOOGLE_ADS_CLIENT_ID=your_client_id
+   GOOGLE_ADS_CLIENT_SECRET=your_client_secret
+   GOOGLE_ADS_DEVELOPER_TOKEN=your_developer_token
+   GOOGLE_ADS_REFRESH_TOKEN=your_refresh_token
+   GOOGLE_ADS_LOGIN_CUSTOMER_ID=your_mcc_customer_id
    ```
 
-   To run with HTTPS:
-   ```bash
-   CERTFILE=./path/to/certificate.crt KEYFILE=./path/to/privatekey.key npx @typingmind/mcp@latest <auth-token>
+### Running Locally
+
+```bash
+npm start
+```
+
+## Deployment
+
+### Render Deployment
+
+This project is configured for deployment on Render:
+
+1. Connect your GitHub repository to Render
+2. Set the following environment variables in Render:
+   - `GOOGLE_ADS_CLIENT_ID`
+   - `GOOGLE_ADS_CLIENT_SECRET`
+   - `GOOGLE_ADS_DEVELOPER_TOKEN`
+   - `GOOGLE_ADS_REFRESH_TOKEN`
+   - `GOOGLE_ADS_LOGIN_CUSTOMER_ID`
+3. Set the build command: `npm install`
+4. Set the start command: `npm start`
+
+## TypingMind Integration
+
+1. In TypingMind, go to **Settings → Advanced Settings → Model Context Protocol**
+2. Set the Connector URL to your deployed server URL
+3. Add the Google Ads MCP server configuration:
+   ```json
+   {
+     "mcpServers": {
+       "googleAds": {
+         "command": "node",
+         "args": ["./typingmind-mcp-server.js"],
+         "env": {"NODE_ENV": "production"}
+       }
+     }
+   }
    ```
 
-   Alternatively, for persistent running (e.g., after closing SSH), you may use a process manager like [pm2](https://pm2.keymetrics.io/) or `screen`/`tmux`:
-   ```bash
-   pm2 start npx -- @typingmind/mcp@latest <auth-token>
-   ```
+## Project Structure
 
----
-
-## How to Run with Docker
-
-You can also run the MCP Connector using Docker.
-
-1.  **Build the Docker Image:**
-    Navigate to the project's root directory (where the `Dockerfile` is located) and run:
-    ```bash
-    docker build -t mcp-connector .
-    ```
-    *(You can replace `mcp-connector` with your preferred image tag.)*
-
-2.  **Run the Docker Container:**
-
-    *   **Basic Run (HTTP):**
-        Replace `<auth-token>` with your actual token. This command runs the container in detached mode (`-d`) and maps the container's default port `50880` to the same port on your host machine.
-        ```bash
-        docker run -d -p 50880:50880 --name mcp-connector-instance mcp-connector <auth-token>
-        ```
-
-    *   **Using a Different Port:**
-        If you need to use a different port (e.g., 8080 on the host mapped to 12345 in the container), use the `-p` flag for mapping and the `-e PORT` environment variable:
-        ```bash
-        docker run -d -p 8080:12345 -e PORT=12345 --name mcp-connector-instance mcp-connector <auth-token>
-        ```
-
-    *   **Running with HTTPS:**
-        To enable HTTPS, you need to provide the certificate and key files and set the `CERTFILE` and `KEYFILE` environment variables. Mount your host's certificate files into the container (e.g., into a `/certs` directory) and provide the paths via environment variables. Remember to map the appropriate port.
-        ```bash
-        docker run -d \
-          -p 50880:50880 \
-          -e PORT=50880 \
-          -e CERTFILE=/certs/certificate.crt \
-          -e KEYFILE=/certs/privatekey.key \
-          -v /path/to/your/certificate.crt:/certs/certificate.crt:ro \
-          -v /path/to/your/privatekey.key:/certs/privatekey.key:ro \
-          --name mcp-connector-instance \
-          mcp-connector <auth-token>
-        ```
-        *(Replace `/path/to/your/certificate.crt` and `/path/to/your/privatekey.key` with the actual paths on your host machine. The `:ro` flag mounts them as read-only.)*
-
-    *   **Viewing Logs:**
-        To see the logs from the running container:
-        ```bash
-        docker logs mcp-connector-instance
-        ```
-
-    *   **Stopping the Container:**
-        ```bash
-        docker stop mcp-connector-instance
-        ```
-
-    *   **Removing the Container:**
-        ```bash
-        docker rm mcp-connector-instance
-        ```
-
----
-
-## How to Connect to TypingMind
-
-To connect MCP Connector to TypingMind:
-
-1. Follow the instructions at [www.typingmind.com/mcp](https://www.typingmind.com/mcp).
-2. Paste your MCP Connector server address (`http://localhost:<port>` or your server’s IP address and port) and your authentication token on the TypingMind MCP integration page.
-
----
-
-## REST API Endpoints
-
-All API endpoints require authentication via the Bearer token you provide when starting the server.
-
-| Endpoint                       | Method | Description                                      |
-|---------------------------------|--------|--------------------------------------------------|
-| `/ping`                        | GET    | Health check; returns `{ status: "ok" }`         |
-| `/start`                       | POST   | Start one or more MCP clients; body: `{ mcpServers: { ... } }` |
-| `/restart/:id`                 | POST   | Restart a specific client                        |
-| `/clients`                     | GET    | List all running MCP clients and their tools     |
-| `/clients/:id`                 | GET    | Get info about a specific client                 |
-| `/clients/:id/tools`           | GET    | List available tools for a client                |
-| `/clients/:id/call_tools`      | POST   | Call a tool for a client; body: `{ name, arguments }` |
-| `/clients/:id`                 | DELETE | Stop and delete a client                         |
-
-**Notes:**  
-- All requests need an `Authorization: Bearer <auth-token>` header.
-- Available ports: The server will choose port `50880` or `50881`, make sure
-these ports are available in your system. You can also use `PORT` environment
-variable to specify a different port.
-
----
+```
+├── lib/
+│   ├── googleAds.js          # Google Ads API integration
+│   ├── clickUp.js            # ClickUp integration
+│   └── server.js             # Server utilities
+├── typingmind-mcp-server.js  # Main MCP server
+├── package.json              # Dependencies and scripts
+└── README.md                 # This file
+```
 
 ## License
 

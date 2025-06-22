@@ -1,14 +1,11 @@
 {
-  "name": "@typingmind/mcp",
-  "version": "1.2.1",
-  "repository": "https://github.com/TypingMind/typingmind-mcp",
-  "description": "Model Context Protocol (MCP) servers runner for TypingMind",
-  "main": "lib/server.js",
-  "bin": {
-    "@typingmind/mcp": "./bin/index.js"
-  },
+  "name": "google-ads-mcp-server",
+  "version": "1.0.0",
+  "description": "Google Ads MCP Server for TypingMind",
+  "main": "typingmind-mcp-server.js",
   "scripts": {
-    "start": "node bin/index.js"
+    "start": "node typingmind-mcp-server.js",
+    "dev": "node typingmind-mcp-server.js"
   },
   "keywords": [
     "ai",
@@ -16,21 +13,19 @@
     "model",
     "context",
     "protocol",
-    "typingmind"
+    "typingmind",
+    "google-ads"
   ],
-  "author": "TypingMind",
+  "author": "Contractor Scale",
   "license": "MIT",
   "dependencies": {
-    "@modelcontextprotocol/sdk": "^1.12.1",
-    "chalk": "^4.1.2",
+    "@modelcontextprotocol/sdk": "^1.13.0",
     "cors": "^2.8.5",
+    "dotenv": "^16.5.0",
     "express": "^4.18.2",
-    "json-stable-stringify": "^1.2.1"
+    "google-ads-api": "^20.0.1"
   },
   "engines": {
-    "node": ">=14.0.0"
-  },
-  "devDependencies": {
-    "prettier": "^3.5.3"
+    "node": ">=18.0.0"
   }
 }
